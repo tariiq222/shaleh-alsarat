@@ -165,12 +165,12 @@
 
         <div class="mx-auto grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-3">
             <article class="rounded-2xl border-2 border-border bg-card p-7 text-center shadow-sm transition hover:shadow-md">
-                <h3 class="text-lg font-semibold text-muted-foreground">السعر الموحد</h3>
+                <h3 class="text-lg font-semibold text-muted-foreground">سعر الشاليه</h3>
                 <p class="mt-3 text-5xl font-extrabold text-primary">
                     {{ number_format((float) $settings->weekday_price, 0) }}
                     <span class="text-xl font-medium text-muted-foreground">ريال</span>
                 </p>
-                <p class="mt-3 text-sm text-muted-foreground">لليلة الواحدة — حجز يومي</p>
+                <p class="mt-3 text-sm text-muted-foreground">لليلة الواحدة — شاليه واحد</p>
             </article>
 
             <article class="relative rounded-2xl border-2 border-primary bg-card p-7 text-center shadow-md">
@@ -184,12 +184,12 @@
             </article>
 
             <article class="rounded-2xl border-2 border-border bg-card p-7 text-center shadow-sm transition hover:shadow-md">
-                <h3 class="text-lg font-semibold text-muted-foreground">السعر الأقصى</h3>
+                <h3 class="text-lg font-semibold text-muted-foreground">حجز الشاليهين</h3>
                 <p class="mt-3 text-5xl font-extrabold text-primary">
                     {{ number_format((float) $settings->weekend_price, 0) }}
                     <span class="text-xl font-medium text-muted-foreground">ريال</span>
                 </p>
-                <p class="mt-3 text-sm text-muted-foreground">في المواسم والمناسبات الخاصة</p>
+                <p class="mt-3 text-sm text-muted-foreground">لليلة الواحدة — الشاليهين الاثنين</p>
             </article>
         </div>
 
