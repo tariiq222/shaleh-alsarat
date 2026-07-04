@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             $table->string('booking_number', 32)->unique()
-                ->comment('رقم الحجز للعرض، مثل CHL-2026-0001');
+                ->comment('Display booking number, e.g. CHL-2026-0001');
 
             $table->string('customer_name');
             $table->string('customer_phone', 32);
@@ -29,11 +29,6 @@ return new class extends Migration
                 ->default('unpaid');
 
             $table->enum('source', ['admin', 'website'])->default('admin');
-
-            $table->foreignId('inquiry_id')
-                ->nullable()
-                ->constrained('inquiries')
-                ->nullOnDelete();
 
             $table->text('notes')->nullable();
 

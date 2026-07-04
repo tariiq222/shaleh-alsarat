@@ -1,17 +1,25 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // Drop the FK from bookings first (if it exists), then the table.
-        Schema::table('bookings', function ($table) {
-            $table->dropForeign(['inquiry_id']);
-            $table->dropColumn('inquiry_id');
-        });
+        // Drop the FK from bookings first when upgrading databases that still have it.
+        if (Schema::hasColumn('bookings', 'inquiry_id')) {
+            if ($this->hasForeignKey('bookings', 'bookings_inquiry_id_foreign')) {
+                Schema::table('bookings', function ($table) {
+                    $table->dropForeign(['inquiry_id']);
+                });
+            }
+
+            Schema::table('bookings', function ($table) {
+                $table->dropColumn('inquiry_id');
+            });
+        }
         Schema::dropIfExists('inquiries');
     }
 
@@ -31,5 +39,40 @@ return new class extends Migration
         Schema::table('bookings', function ($table) {
             $table->foreignId('inquiry_id')->nullable()->constrained('inquiries')->nullOnDelete();
         });
+    }
+
+    private function hasForeignKey(string $table, string $constraint): bool
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            return (bool) DB::scalar(
+                "select exists(
+                    select 1
+                    from information_schema.table_constraints
+                    where constraint_schema = current_schema()
+                      and table_name = ?
+                      and constraint_name = ?
+                      and constraint_type = 'FOREIGN KEY'
+                )",
+                [$table, $constraint]
+            );
+        }
+
+        if ($driver === 'mysql') {
+            return (bool) DB::scalar(
+                "select exists(
+                    select 1
+                    from information_schema.table_constraints
+                    where constraint_schema = database()
+                      and table_name = ?
+                      and constraint_name = ?
+                      and constraint_type = 'FOREIGN KEY'
+                )",
+                [$table, $constraint]
+            );
+        }
+
+        return false;
     }
 };
