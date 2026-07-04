@@ -1,0 +1,38 @@
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+*.log
+
+# Dependencies — installed inside image
+node_modules
+vendor
+
+# Local artifacts
+.phpunit.cache
+.phpunit.result.cache
+storage/logs/*
+storage/pail
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/*.key
+
+# Test artifacts
+playwright-report
+test-results
+/blob-report
+/blobin
+/blobout
+
+# Env files (kept inside image build only via ARGs)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# CI / docs
+*.md
+!README.md
+LICENSE

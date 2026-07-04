@@ -1,0 +1,117 @@
+# ===========================================================
+# shaleh-alsarat — Production Docker Compose
+# ===========================================================
+# Usage:
+#   1. Copy .env.production.example -> .env and fill in
+#   2. docker compose pull    (when using prebuilt image)
+#   3. docker compose up -d
+#   4. docker compose logs -f app     (watch migration progress)
+# ===========================================================
+#
+# Compatible with Coolify / Portainer / standard docker compose.
+# Project name suggestion in Coolify: "al-shalehat"
+# ===========================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shaleh-alsarat:latest
+    container_name: shaleh-app
+    restart: unless-stopped
+
+    # Map container port 80 → host port 80 (adjust behind a reverse proxy)
+    ports:
+      - "80:80"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      APP_NAME: "شاليهات السراة"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost}
+
+      LOG_CHANNEL: stack
+      LOG_STACK: single
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE:-chalet_mvp}
+      DB_USERNAME: ${DB_USERNAME:-chalet}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      FILESYSTEM_DISK: public
+
+      ADMIN_NAME: ${ADMIN_NAME:-مدير الشاليه}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+
+    volumes:
+      # Persistent storage for uploaded photos + logs (survives container recreate).
+      # On first run, the image's pre-baked photos (28 PNGs ~55MB) are used as initial content;
+      # any new uploads in production go into a Docker named volume that persists.
+      - chalet-storage:/var/www/html/storage
+
+    networks:
+      - chalet-net
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/up || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # -------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: shaleh-db
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD required}
+      MYSQL_DATABASE: ${DB_DATABASE:-chalet_mvp}
+      MYSQL_USER: ${DB_USERNAME:-chalet}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+
+    volumes:
+      - chalet-dbdata:/var/lib/mysql
+
+    ports:
+      # Exposed only for debugging from the host (e.g. mysql client).
+      # Remove this line in production behind a reverse proxy.
+      - "3306:3306"
+
+    networks:
+      - chalet-net
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  chalet-storage:
+    name: shaleh-alsarat-storage
+  chalet-dbdata:
+    name: shaleh-alsarat-dbdata
+
+networks:
+  chalet-net:
+    name: shaleh-net
+    driver: bridge
