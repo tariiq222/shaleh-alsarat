@@ -1,0 +1,13 @@
+{
+    "extends": "@tsconfig/node22/tsconfig.json",
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "types": ["node"],
+        "esModuleInterop": true,
+        "jsx": "preserve",
+        "allowJs": true,
+        "checkJs": false
+    },
+    "include": ["vite.config.js"]
+}
