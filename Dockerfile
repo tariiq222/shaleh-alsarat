@@ -18,7 +18,7 @@ RUN composer install \
 COPY . .
 
 # Generate optimized autoloader now that source is in place
-RUN composer dump-autoloader --optimize --classmap-authoritative --no-dev
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 
 # ===== Stage 2: Node.js frontend build =====
 FROM node:20-alpine AS frontend
