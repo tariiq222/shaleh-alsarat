@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev \
         libicu-dev \
         libonig-dev \
-        mariadb-client \
+        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions required by Laravel + the app
@@ -58,7 +58,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         bcmath \
         intl \
         mbstring \
-        pdo_mysql \
+        pdo_pgsql \
+        pgsql \
         zip \
         gd \
         exif \

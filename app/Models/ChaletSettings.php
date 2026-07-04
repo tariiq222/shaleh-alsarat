@@ -36,8 +36,10 @@ class ChaletSettings extends Model
         'location_text',
         'map_url',
         'whatsapp_number',
+        'phone_number',
         'weekday_price',
         'weekend_price',
+        'max_capacity',
         'check_in_time',
         'check_out_time',
         'is_active',
@@ -48,6 +50,7 @@ class ChaletSettings extends Model
         return [
             'weekday_price' => 'decimal:2',
             'weekend_price' => 'decimal:2',
+            'max_capacity' => 'integer',
             'is_active' => 'boolean',
         ];
     }
@@ -87,7 +90,7 @@ class ChaletSettings extends Model
     /**
      * @return Collection<int, string>
      */
-    public function featuresList(): Collection
+    public function getFeatureLinesAttribute(): Collection
     {
         if (! $this->features) {
             return collect();
@@ -113,5 +116,25 @@ class ChaletSettings extends Model
         }
 
         return $url;
+    }
+
+    /**
+     * Phone link (tel:) for direct calls. Strips non-digits and adds the
+     * Saudi country code prefix if a local 05XX number is provided.
+     */
+    public function phoneLink(): ?string
+    {
+        if (! $this->phone_number) {
+            return null;
+        }
+
+        $phone = preg_replace('/[^0-9]/', '', $this->phone_number);
+
+        // If it starts with 05 (Saudi local mobile), prepend country code 966
+        if (str_starts_with($phone, '05')) {
+            $phone = '966'.substr($phone, 1);
+        }
+
+        return 'tel:+'.$phone;
     }
 }

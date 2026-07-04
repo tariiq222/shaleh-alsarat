@@ -8,7 +8,7 @@ payments, blocked dates, and chalet settings. The system is designed for **one c
 
 ## Tech Stack
 
-- **Backend**: PHP 8.2, Laravel 11, SQLite (dev/tests) or MySQL 8 (prod)
+- **Backend**: PHP 8.2, Laravel 11, SQLite (dev/tests) or PostgreSQL (prod)
 - **Frontend**: Inertia.js 2, React 18, TypeScript, Tailwind CSS 3, shadcn/ui patterns
 - **Calendar**: FullCalendar 6 (`dayGridPlugin` + `interactionPlugin`)
 - **Tests**: Pest 3 (PHP unit + feature), Playwright (E2E browser)
@@ -16,11 +16,11 @@ payments, blocked dates, and chalet settings. The system is designed for **one c
 
 ## Requirements
 
-- PHP 8.2 or newer (with `intl`, `mbstring`, `pdo_mysql` or `pdo_sqlite`)
+- PHP 8.2 or newer (with `intl`, `mbstring`, `pdo_pgsql` or `pdo_sqlite`)
 - Composer 2
 - Node.js 20 or newer
 - npm 10+
-- MySQL 8 (production) or SQLite (development / tests)
+- PostgreSQL 14+ (production) or SQLite (development / tests)
 
 ## Installation
 
@@ -33,7 +33,7 @@ cp .env.example .env
 #   APP_KEY=             (will be generated)
 #   ADMIN_EMAIL=
 #   ADMIN_PASSWORD=      (at least 8 characters)
-#   DB_*                 (MySQL credentials)
+#   DB_*  or DATABASE_URL  (PostgreSQL or SQLite credentials)
 
 composer install
 php artisan key:generate
@@ -163,10 +163,19 @@ The project ships with a production-ready multi-stage `Dockerfile` + `docker-com
 
 | Container | Image | Role |
 |---|---|---|
-| `shaleh-app` | `php:8.2-apache` (custom build) | Serves Laravel + Inertia app on port 80 |
-| `shaleh-db` | `mysql:8.0` | Persistent MySQL data |
+| `shaleh-app` | `php:8.2-apache` + `pdo_pgsql` (custom build) | Serves Laravel + Inertia app on port 80 |
 
-Named volumes `chalet-alsarat-storage` (photos, logs, cache) and `chalet-alsarat-dbdata` (MySQL) persist across container rebuilds.
+**Database**: external managed **PostgreSQL** (Supabase / Neon / Render / your own VPS-hosted Postgres). Connection via `DATABASE_URL`.
+
+Named volume `shaleh-alsarat-storage` (photos, logs, cache) persists across container rebuilds.
+
+### Why external Postgres vs bundled MySQL?
+
+- ✅ No data loss if Docker stack is recycled
+- ✅ Backups managed by the database provider
+- ✅ Easier vertical scaling
+- ✅ Free tier available (Supabase, Neon)
+- ✅ Built-in connection pooling on most providers
 
 ### One-time deployment on any VPS / Coolify / Portainer host
 
@@ -196,8 +205,24 @@ cd ~/shaleh-alsarat
 
 ```bash
 cp .env.production.example .env
-nano .env          # fill DB_PASSWORD, DB_ROOT_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD, APP_URL
+nano .env
+# Fill in:
+#   DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME?sslmode=require
+#   ADMIN_EMAIL=admin@yourdomain.com
+#   ADMIN_PASSWORD=your-strong-password
+#   APP_URL=https://yourdomain.com
 ```
+
+**Getting a DATABASE_URL** depends on your provider:
+
+| Provider | Where to find it |
+|---|---|
+| **Supabase** | Settings → Database → Connection string → "URI" |
+| **Neon** | Dashboard → your project → Connection details → "Full" |
+| **Render** | Dashboard → your DB → "External Connection" |
+| **Self-hosted on VPS** | `postgresql://USER:PASS@HOST:5432/DBNAME` |
+
+Always append `?sslmode=require` unless your Postgres is on the same private network.
 
 #### 4. Start the stack
 
@@ -206,7 +231,7 @@ docker compose up -d --build
 ```
 
 That's it. The `app` container's entrypoint script will:
-1. Wait for MySQL to be healthy
+1. Wait for PostgreSQL port to be reachable
 2. Generate `APP_KEY` if missing
 3. Run `php artisan storage:link`
 4. Run `php artisan migrate --force`
@@ -252,8 +277,12 @@ The entrypoint runs `migrate --force` each time, so DB schema updates are automa
 ### Backup strategy
 
 ```bash
-# Database dump
-docker compose exec db mysqldump -uroot -p"$DB_ROOT_PASSWORD" chalet_mvp | gzip > backup-$(date +%F).sql.gz
+# Database dump (use your DB provider's CLI or pg_dump)
+# For local psql access, you'll need to install psql or use the provider's web UI
+docker run --rm postgres:16-alpine pg_dump "$DATABASE_URL" | gzip > backup-$(date +%F).sql.gz
+
+# Restore
+gunzip < backup-2026-XX-XX.sql.gz | docker run --rm -i postgres:16-alpine psql "$DATABASE_URL"
 
 # Uploads (photos)
 docker run --rm -v shaleh-alsarat-storage:/data -v $(pwd):/backup alpine \
@@ -264,7 +293,8 @@ docker run --rm -v shaleh-alsarat-storage:/data -v $(pwd):/backup alpine \
 
 | Symptom | Fix |
 |---|---|
-| `MySQL not reachable` | Check `.env` `DB_HOST=db`, run `docker compose logs db` |
+| `PostgreSQL not reachable` | Check `.env` `DATABASE_URL`, verify host/port reachable from container |
+| `relation "X" does not exist` | Migrations didn't run — `docker compose exec app php artisan migrate --force` |
 | 500 on every request | `docker compose exec app php artisan config:clear` |
 | Photos not loading | `docker compose exec app php artisan storage:link` |
 | Forgot admin password | `docker compose exec app php artisan admin:reset-password admin@yourdomain.com --password='newpass'` |

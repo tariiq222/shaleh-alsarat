@@ -20,27 +20,40 @@ echo "  shaleh-alsarat container starting..."
 echo "==========================================="
 
 # ----------------------------------------------------------
-# 1. Wait for MySQL (max 60s)
+# 1. Wait for PostgreSQL (max 60s)
 # ----------------------------------------------------------
-if [[ -n "${DB_HOST:-}" ]] && [[ "${DB_CONNECTION:-mysql}" != "sqlite" ]]; then
-    echo "→ Waiting for MySQL at ${DB_HOST}:${DB_PORT:-3306}..."
+if [[ "${DB_CONNECTION:-pgsql}" != "sqlite" ]]; then
+    # Pull host + port out of DATABASE_URL (postgresql://user:pass@host:port/db?...)
+    if [[ -n "${DATABASE_URL:-}" ]]; then
+        DB_WAIT_HOST=$(echo "$DATABASE_URL" | sed -E 's|^postgres(ql)?://[^@]+@([^:/]+).*|\2|')
+        DB_WAIT_PORT=$(echo "$DATABASE_URL" | sed -E 's|^postgres(ql)?://[^@]+@[^:/]+:([0-9]+).*|\2|')
+        DB_WAIT_HOST="${DB_WAIT_HOST:-db}"
+        DB_WAIT_PORT="${DB_WAIT_PORT:-5432}"
+    else
+        DB_WAIT_HOST="${DB_HOST:-db}"
+        DB_WAIT_PORT="${DB_PORT:-5432}"
+    fi
+
+    echo "→ Waiting for PostgreSQL at ${DB_WAIT_HOST}:${DB_WAIT_PORT}..."
     ATTEMPTS=0
     MAX_ATTEMPTS=30
-    until mysqladmin ping \
-        --host="${DB_HOST}" \
-        --port="${DB_PORT:-3306}" \
-        --user="${DB_USERNAME}" \
-        --password="${DB_PASSWORD}" \
-        --silent 2>/dev/null; do
+    until php -r "
+        \$host = '${DB_WAIT_HOST}';
+        \$port = (int) '${DB_WAIT_PORT}';
+        \$errno = 0; \$errstr = '';
+        \$sock = @stream_socket_client('tcp://'.\$host.':'.\$port, \$errno, \$errstr, 3);
+        if (\$sock) { fclose(\$sock); exit(0); }
+        exit(1);
+    " 2>/dev/null; do
         ATTEMPTS=$((ATTEMPTS + 1))
         if [[ $ATTEMPTS -ge $MAX_ATTEMPTS ]]; then
-            echo "✗ MySQL not reachable after ${MAX_ATTEMPTS} attempts. Exiting."
+            echo "✗ PostgreSQL not reachable after ${MAX_ATTEMPTS} attempts. Exiting."
             exit 1
         fi
         echo "  waiting ($ATTEMPTS/$MAX_ATTEMPTS)..."
         sleep 2
     done
-    echo "✓ MySQL is up."
+    echo "✓ PostgreSQL port reachable."
 fi
 
 # ----------------------------------------------------------

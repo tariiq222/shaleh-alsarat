@@ -4,10 +4,9 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\BlockedDateController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Public\InquiryController as PublicInquiryController;
+use App\Http\Controllers\Admin\SocialLinkController;
 use App\Http\Controllers\Public\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,10 +18,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'home'])
     ->name('public.home');
-
-Route::post('/inquiries', [PublicInquiryController::class, 'store'])
-    ->middleware('throttle:inquiries')
-    ->name('public.inquiries.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -54,12 +49,6 @@ Route::prefix('admin')
         Route::post('/bookings/{booking}/payments', [PaymentController::class, 'store'])->name('bookings.payments.store');
         Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
 
-        // Inquiries
-        Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
-        Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.status');
-        Route::get('/inquiries/{inquiry}/convert', [InquiryController::class, 'convertForm'])->name('inquiries.convert');
-        Route::post('/inquiries/{inquiry}/convert', [InquiryController::class, 'convert'])->name('inquiries.convert.store');
-
         // Blocked dates
         Route::post('/blocked-dates', [BlockedDateController::class, 'store'])->name('blocked-dates.store');
         Route::delete('/blocked-dates/{blockedDate}', [BlockedDateController::class, 'destroy'])->name('blocked-dates.destroy');
@@ -72,6 +61,12 @@ Route::prefix('admin')
         Route::post('/settings/photos', [SettingsController::class, 'uploadPhoto'])->name('settings.photos.store');
         Route::delete('/settings/photos/{photo}', [SettingsController::class, 'deletePhoto'])->name('settings.photos.destroy');
         Route::post('/settings/photos/reorder', [SettingsController::class, 'reorderPhotos'])->name('settings.photos.reorder');
+
+        // Social links (CRUD)
+        Route::get('/settings/social-links', [SocialLinkController::class, 'index'])->name('social-links.index');
+        Route::post('/settings/social-links', [SocialLinkController::class, 'store'])->name('social-links.store');
+        Route::put('/settings/social-links/{socialLink}', [SocialLinkController::class, 'update'])->name('social-links.update');
+        Route::delete('/settings/social-links/{socialLink}', [SocialLinkController::class, 'destroy'])->name('social-links.destroy');
     });
 
 /*

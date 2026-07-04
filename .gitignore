@@ -9,6 +9,7 @@
 .env
 .env.backup
 .env.production
+.env.local
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -37,3 +38,17 @@ Thumbs.db
 # Local DB dumps (if any)
 /database/*.sql
 /backups/
+
+# Local SQLite DB (development only)
+/database/database.sqlite
+
+# Bootstrap framework cache (generated at runtime)
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitkeep
+
+# Compiled Blade templates (cached at runtime)
+/storage/framework/views/*.php
+!/storage/framework/views/.gitkeep
+
+# Composer lock is committed (ensures reproducible installs)
+!composer.lock

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Booking;
-use App\Models\Inquiry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -52,13 +51,5 @@ class BookingFactory extends Factory
     public function paid(): self
     {
         return $this->state(fn () => array_merge($this->definition(), ['payment_status' => 'paid']));
-    }
-
-    public function fromWebsite(): self
-    {
-        return $this->state(fn () => [
-            'source' => 'website',
-            'inquiry_id' => Inquiry::factory(),
-        ]);
     }
 }

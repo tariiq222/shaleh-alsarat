@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Inquiry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -58,39 +57,6 @@ class BookingService
 
             // Recalculate remaining + payment status from existing payments
             $this->payments->recalculateForBooking($booking);
-
-            return $booking->refresh();
-        });
-    }
-
-    /**
-     * Convert an inquiry into a confirmed/pending booking.
-     */
-    public function createFromInquiry(Inquiry $inquiry, array $bookingData): Booking
-    {
-        return DB::transaction(function () use ($inquiry, $bookingData) {
-            $this->guardDates($bookingData['start_date'], $bookingData['end_date']);
-            $this->guardAmounts($bookingData);
-
-            $conflict = $this->availability->checkAvailability(
-                $bookingData['start_date'],
-                $bookingData['end_date'],
-            );
-            if ($conflict) {
-                throw ValidationException::withMessages(['dates' => $conflict]);
-            }
-
-            $booking = new Booking();
-            $booking->fill($this->prepareFillable($bookingData));
-            $booking->booking_number = Booking::generateNextBookingNumber();
-            $booking->remaining_amount = $booking->total_amount;
-            $booking->source = 'website';
-            $booking->inquiry_id = $inquiry->id;
-            $booking->booking_status = $booking->booking_status ?: 'pending';
-            $booking->payment_status = 'unpaid';
-            $booking->save();
-
-            $inquiry->update(['status' => 'converted_to_booking']);
 
             return $booking->refresh();
         });

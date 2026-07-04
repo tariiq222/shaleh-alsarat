@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
+// Suppress PHP 8.5+ deprecation warnings for PDO::MYSQL_ATTR_SSL_CA — Laravel 11 still
+// references the legacy constant which emits a deprecation in PHP 8.5+. Safe to ignore
+// until Laravel 12 updates this internally. Filter only this specific deprecation to
+// keep visibility for other deprecations.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property 'pending'|'confirmed'|'cancelled'|'completed' $booking_status
  * @property 'unpaid'|'partially_paid'|'paid' $payment_status
  * @property 'admin'|'website' $source
- * @property int|null $inquiry_id
  * @property string|null $notes
  */
 class Booking extends Model
@@ -44,7 +43,6 @@ class Booking extends Model
         'booking_status',
         'payment_status',
         'source',
-        'inquiry_id',
         'notes',
     ];
 
@@ -62,11 +60,6 @@ class Booking extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
-    }
-
-    public function inquiry(): BelongsTo
-    {
-        return $this->belongsTo(Inquiry::class);
     }
 
     public function getPaidAmountAttribute(): float

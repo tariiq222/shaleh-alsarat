@@ -35,6 +35,17 @@
         --radius: 0.5rem;
     }
 
+    html, body {
+        font-family: 'IBM Plex Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        font-feature-settings: "kern" 1, "liga" 1;
+    }
+
+    /* Numerals: keep Latin digits in tabular contexts (phone numbers, prices) */
+    .font-latin {
+        font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        font-feature-settings: "tnum" 1;
+    }
+
     .dark {
         --background: 222.2 84% 4.9%;
         --foreground: 210 40% 98%;

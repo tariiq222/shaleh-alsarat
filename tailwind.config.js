@@ -23,8 +23,10 @@ export default {
         extend: {
             fontFamily: {
                 sans: [
-                    'Tajawal',
-                    'Cairo',
+                    'IBM Plex Sans Arabic',
+                    'system-ui',
+                    '-apple-system',
+                    'BlinkMacSystemFont',
                     ...defaultTheme.fontFamily.sans,
                 ],
             },

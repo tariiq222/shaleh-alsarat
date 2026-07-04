@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Inquiry;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,9 +41,6 @@ class DashboardController extends Controller
         $outstanding = (float) Booking::query()
             ->whereIn('booking_status', ['pending', 'confirmed'])
             ->sum('remaining_amount');
-
-        // New inquiries count
-        $newInquiriesCount = Inquiry::query()->where('status', 'new')->count();
 
         // Last 5 bookings
         $recentBookings = Booking::query()
@@ -85,7 +81,6 @@ class DashboardController extends Controller
                 'upcoming_count' => $upcomingCount,
                 'monthly_income' => $monthlyIncome,
                 'outstanding' => $outstanding,
-                'new_inquiries' => $newInquiriesCount,
             ],
             'todays_bookings' => $todaysBookings->map(fn ($b) => [
                 'id' => $b->id,

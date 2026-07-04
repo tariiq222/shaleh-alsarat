@@ -31,5 +31,10 @@ class AdminSeeder extends Seeder
         );
 
         $this->command->info("Admin user ready: {$user->email} (id={$user->id})");
+
+        if ($password === 'changeme' || $password === 'password') {
+            $this->command->warn('⚠️  You are using a default password. CHANGE IT BEFORE GOING TO PRODUCTION!');
+            $this->command->warn('   Run: php artisan admin:reset-password '.$email.' <new-strong-password>');
+        }
     }
 }

@@ -27,12 +27,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Rate limiters
-        RateLimiter::for('inquiries', function (Request $request) {
-            $perMinute = (int) config('services.inquiry_rate_limit_per_minute', 10);
-
-            return Limit::perMinute($perMinute)->by($request->ip());
-        });
-
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(5)->by($request->input('email').$request->ip());
         });
