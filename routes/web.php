@@ -25,6 +25,10 @@ Route::get('/', [PageController::class, 'home'])
 |--------------------------------------------------------------------------
 */
 
+// `/admin/login` is the obvious admin login URL. The auth login page lives at
+// `/login`, so redirect there before the auth-protected admin group runs.
+Route::redirect('/admin/login', '/login', 301);
+
 Route::prefix('admin')
     ->name('admin.')
     ->middleware('auth')

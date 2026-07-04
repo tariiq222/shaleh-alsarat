@@ -10,6 +10,12 @@ it('redirects guests to login', function () {
     $response->assertRedirect('/login');
 });
 
+it('redirects /admin/login to /login', function () {
+    $response = $this->get('/admin/login');
+
+    $response->assertRedirect('/login');
+});
+
 it('allows admin to log in with valid credentials', function () {
     $admin = adminUser();
 

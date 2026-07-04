@@ -319,7 +319,7 @@
                  src=""
                  alt=""
                  draggable="false"
-                 class="w-auto max-w-none touch-none rounded-lg object-contain shadow-2xl sm:max-h-[80vh] sm:max-w-full"
+                 class="h-auto max-h-[85vh] max-w-full touch-none rounded-lg object-contain shadow-2xl sm:max-h-[80vh]"
                  style="-webkit-user-drag: none; user-select: none;">
             <figcaption id="lightbox-caption"
                         class="mt-4 max-w-2xl shrink-0 text-center text-base font-medium text-white/90"

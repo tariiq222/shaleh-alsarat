@@ -110,6 +110,11 @@ class ChaletSettings extends Model
 
         $phone = preg_replace('/[^0-9]/', '', $this->whatsapp_number);
 
+        // If it starts with 05 (Saudi local mobile), prepend country code 966
+        if (str_starts_with($phone, '05')) {
+            $phone = '966'.substr($phone, 1);
+        }
+
         $url = "https://wa.me/{$phone}";
         if ($message) {
             $url .= '?text='.rawurlencode($message);
