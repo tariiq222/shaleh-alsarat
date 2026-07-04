@@ -31,8 +31,8 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
-# ===== Stage 3: Runtime (PHP 8.2 + Apache + mod_php) =====
-FROM php:8.2-apache-bookworm AS runtime
+# ===== Stage 3: Runtime (PHP 8.4 + Apache + mod_php) =====
+FROM php:8.4-apache-bookworm AS runtime
 
 LABEL maintainer="tariq.alwalidi@gmail.com" \
       project="shaleh-alsarat" \
