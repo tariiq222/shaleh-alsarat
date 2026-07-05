@@ -40,7 +40,36 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // A guest visit to a public page (e.g. "/") can leave a stale
+        // `url.intended` in the session. Sending an admin there after login
+        // would dump them back on the public site. Only honor the intended
+        // URL when it points to an admin path on this host.
+        $intended = $request->session()->get('url.intended');
+        if (! is_string($intended) || ! $this->isSafeAdminIntended($intended, $request)) {
+            $request->session()->forget('url.intended');
+        }
+
         return redirect()->intended(route('admin.dashboard'));
+    }
+
+    /**
+     * Determine whether a session-stored intended URL is safe to redirect an
+     * admin to. Accepts the exact path `/admin` and paths starting with the
+     * `/admin/` prefix. Absolute URLs must also match the current request's
+     * host. Everything else — including lookalikes such as `/administrator`
+     * and `/admin-public`, and cross-host URLs — is rejected to avoid open
+     * redirects.
+     */
+    private function isSafeAdminIntended(string $intended, Request $request): bool
+    {
+        $host = parse_url($intended, PHP_URL_HOST);
+        if ($host !== null && $host !== $request->getHost()) {
+            return false;
+        }
+
+        $path = parse_url($intended, PHP_URL_PATH) ?: '';
+
+        return $path === '/admin' || str_starts_with($path, '/admin/');
     }
 
     /**
